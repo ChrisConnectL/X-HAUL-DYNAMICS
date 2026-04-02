@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Haul Dynamics | Connect Logistics Pricing Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Core CSS Variables - Modern SaaS Theme */
+        :root {
+            --primary-dark: #1c2545;
+            --corp-blue: #273480;
+            --interactive-blue: #3b82f6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --alert-red: #ef4444;
+            --soft-border: #e2e8f0;
+            --muted-text: #9ca3af;
+            
+            /* Glassmorphism Formula */
+            --glass-bg: radial-gradient(circle at top left, rgba(30,64,175,0.92) 0%, rgba(15,23,42,0.94) 45%, rgba(15,23,42,0.98) 100%);
+            --glass-blur: blur(18px);
+            --glass-shadow: 0 24px 60px rgba(15,23,42,0.85);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #e0f2fe 0%, #f8fafc 45%, #e5e7eb 100%);
+            color: var(--primary-dark);
+            overflow: hidden;
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .dashboard-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Typography Rules */
+        h1, h2, h3 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted-text);
+        }
+
+        /* Glassmorphism Elements */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            box-shadow: var(--glass-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+        }
+
+        /* High-End Input Styling */
+        .premium-input {
+            background: #ffffff;
+            border: 1px solid var(--soft-border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            transition: all 0.2s ease;
+        }
+        .premium-input:focus {
+            outline: none;
+            border-color: var(--interactive-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--interactive-blue) 0%, var(--corp-blue) 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(39, 52, 128, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(39, 52, 128, 0.4);
+            filter: brightness(1.1);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Status LEDs */
+        .led-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .led-success { background: var(--success-green); box-shadow: 0 0 8px var(--success-green); }
+        .led-warning { background: var(--warning-orange); box-shadow: 0 0 8px var(--warning-orange); }
+        .led-error { background: var(--alert-red); box-shadow: 0 0 8px var(--alert-red); }
+
+        /* Custom Toggles */
+        .pill-toggle {
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 100px;
+            display: flex;
+            gap: 4px;
+        }
+        .pill-toggle button {
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.2s ease;
+        }
+        .pill-toggle button.active {
+            background: white;
+            color: var(--corp-blue);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .pill-toggle button:not(.active) {
+            color: #64748b;
+        }
+
+        /* Table Styling */
+        .vicious-table th {
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--muted-text);
+            padding: 1rem;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .vicious-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .vicious-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: #3b82f6;
+        }
+        .vicious-table tr:hover td input {
+            color: #3b82f6;
+        }
+        
+        /* Premium Row Badge */
+        .size-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .parameter-card {
+            background: white;
+            border: 1px solid var(--soft-border);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .parameter-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.05);
+            border-color: var(--interactive-blue);
+        }
+        .parameter-card .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted-text);
+            margin-bottom: 0.5rem;
+            display: block;
+            transition: color 0.3s ease;
+        }
+        .parameter-card:hover .label {
+            color: var(--interactive-blue);
+        }
+
+        /* Live Pulse Indicator */
+        .live-indicator-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 100px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success-green);
+            border-radius: 50%;
+            position: relative;
+        }
+        .live-pulse::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--success-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Main Header -->
+        <nav class="flex-shrink-0 px-8 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#273480] text-white shadow-xl shadow-blue-900/20">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-800 tracking-tight text-[#1c2545]">X-HAUL <span class="text-[#3b82f6]">DYNAMICS</span></h1>
+                    <p class="section-label">Connect Logistics Pricing Terminal</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="live-indicator-wrapper">
+                    <div class="live-pulse"></div>
+                    <span class="text-[10px] font-800 text-[#10b981] uppercase tracking-widest">Live Engine</span>
+                </div>
+                <div class="px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                    <span class="section-label !text-slate-400 !tracking-widest mr-2">Terminal Sync:</span>
+                    <span id="last-updated" class="text-[10px] font-800 text-white uppercase">Initializing...</span>
+                </div>
+                <button onclick="toggleInfo()" class="btn-secondary flex items-center justify-center !p-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <div id="spike-warning" class="hidden">
+                    <div class="flex items-center gap-3 rounded-2xl border border-red-500/30 bg-white px-5 py-2.5 shadow-lg">
+                        <span class="led-indicator led-error animate-pulse"></span>
+                        <span class="section-label !text-red-500">Fuel Spike Detected</span>
+                    </div>
+                </div>
+                <button onclick="exportToExcel()" class="btn-primary flex items-center gap-2">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Export Data
+                </button>
+            </div>
+        </nav>
+
+        <!-- Command Center (Parameters) -->
+        <div class="flex-shrink-0 px-8 py-2">
+            <div class="flex flex-wrap items-stretch gap-6">
+                
+                <!-- Section 1: Calculation Config -->
+                <div class="flex flex-col gap-3">
+                    <span class="section-label ml-1">Logic Terminal</span>
+                    <div class="flex items-center gap-4">
+                        <div class="pill-toggle">
+                            <button id="mode-avg" onclick="setCalcMode('average')" class="active">3-Month Avg</button>
+                            <button id="mode-fixed" onclick="setCalcMode('fixed')">Fixed Rate</button>
+                        </div>
+                        
+                        <div class="parameter-card flex flex-col justify-center min-w-[140px]">
+                            <span class="label">Fuel Portion</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="fuel-portion-input" step="0.01" value="25.00" class="premium-input w-full !p-2 !text-lg">
+                                <span class="text-xs font-bold text-slate-400">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Input Parameters -->
+                <div class="flex flex-col gap-3 flex-1">
+                    <span class="section-label ml-1">Market Parameters</span>
+                    
+                    <div id="avg-inputs-container" class="flex items-center gap-3">
+                        <div class="parameter-card flex-1">
+                            <span class="label">Month 1</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400">R</span>
+                                <input type="number" id="m1-price" step="0.0001" class="premium-input w-full !p-2">
+                            </div>
+                        </div>
+                        <div class="parameter-card flex-1">
+                            <span class="label">Month 2</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400">R</span>
+                                <input type="number" id="m2-price" step="0.0001" class="premium-input w-full !p-2">
+                            </div>
+                        </div>
+                        <div class="parameter-card flex-1">
+                            <span class="label">Month 3</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400">R</span>
+                                <input type="number" id="m3-price" step="0.0001" class="premium-input w-full !p-2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="fixed-input-container" class="hidden">
+                        <div class="parameter-card w-full">
+                            <span class="label">Fixed Base Rate</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400">R</span>
+                                <input type="number" id="fixed-base-price" step="0.01" value="15.00" class="premium-input w-full !p-2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Live Market -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between ml-1">
+                        <span class="section-label">Live Feed</span>
+                        <div class="flex items-center gap-2 cursor-pointer group/toggle" onclick="toggleSimulation()">
+                            <span id="sim-label" class="text-[9px] font-900 text-slate-400 uppercase tracking-widest transition-colors group-hover/toggle:text-[#3b82f6]">Stream Off</span>
+                            <div class="w-8 h-4 bg-slate-200 rounded-full p-0.5 transition-colors relative" id="sim-toggle-bg">
+                                <div class="w-3 h-3 bg-white rounded-full shadow-sm transition-transform" id="sim-toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="parameter-card min-w-[220px] border-[#3b82f6]/20 bg-blue-50/50 relative overflow-hidden">
+                        <!-- Stream Animation Overlay -->
+                        <div id="stream-grid" class="absolute inset-0 opacity-0 transition-opacity pointer-events-none">
+                            <div class="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]"></div>
+                        </div>
+                        
+                        <span class="label !text-[#3b82f6] flex items-center justify-between">
+                            Current Diesel
+                            <span id="feed-status" class="text-[8px] font-black uppercase opacity-40">Static</span>
+                        </span>
+                        <div class="flex items-center gap-2 relative z-10">
+                            <span class="text-xs font-bold text-[#3b82f6]/50">R</span>
+                            <input type="number" id="current-price" step="0.0001" class="premium-input w-full !p-2 !text-[#3b82f6] border-[#3b82f6]/30">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Results Analysis -->
+                <div class="flex flex-col gap-3 min-w-[320px]">
+                    <span class="section-label ml-1">Core Metrics</span>
+                    <div class="flex items-center gap-4 h-full">
+                        <div class="flex-1">
+                            <span class="label">Benchmark</span>
+                            <div id="benchmark-display" class="text-2xl font-800 text-[#1c2545]">R 0.00</div>
+                        </div>
+                        <div class="parameter-card flex-1 !bg-[#1c2545] border-none shadow-xl">
+                            <span class="label !text-slate-400">Movement</span>
+                            <div class="flex items-center justify-between">
+                                <span id="movement-display" class="text-2xl font-900 text-[#10b981] tracking-tighter">0.000%</span>
+                                <svg id="movement-trend" class="h-6 w-6 text-[#10b981] transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Dynamic Table Terminal -->
+        <main class="flex-1 overflow-hidden px-8 py-8">
+            <div class="glass-panel h-full flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between p-8 border-b border-white/5">
+                    <div>
+                        <h2 class="text-2xl font-800 tracking-tight text-white">Haulage Matrix</h2>
+                        <p class="section-label !text-slate-400">Real-time Pricing Terminal</p>
+                    </div>
+                    <button id="add-row" class="btn-primary flex items-center gap-3 !px-8 !py-4 shadow-2xl">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                        Add New Entry
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-auto custom-scroll">
+                    <table class="w-full vicious-table">
+                        <thead class="sticky top-0 z-10">
+                            <tr>
+                                <th class="px-8 text-left">Client Entity</th>
+                                <th class="px-6 text-left">Size</th>
+                                <th class="px-6 text-right">Base Rate</th>
+                                <th class="px-6 text-right">Fuel Portion</th>
+                                <th class="px-6 text-right">Non-Fuel</th>
+                                <th class="px-6 text-right text-[#f59e0b]">Surcharge</th>
+                                <th class="px-6 text-right">Final Rate</th>
+                                <th class="px-8 w-20"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="rate-table-body">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                    
+                    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-40 text-center">
+                        <div class="relative mb-8">
+                            <div class="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full"></div>
+                            <svg class="w-24 h-24 text-white/10 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-800 uppercase tracking-[0.2em] text-white/30">Terminal Standby</h3>
+                        <p class="section-label !text-white/10 mt-3">Awaiting data initialization sequence</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal-overlay" onclick="toggleInfo()">
+        <div class="modal-content !max-w-3xl glass-panel !p-12" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-10">
+                <div>
+                    <h3 class="text-3xl font-800 text-white m-0">Logic Protocol</h3>
+                    <p class="section-label !text-slate-400 mt-1">Pricing Methodology & Rules</p>
+                </div>
+                <button onclick="toggleInfo()" class="btn-secondary !p-2 !rounded-full opacity-40 hover:opacity-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div class="flex gap-5">
+                        <div class="h-10 w-10 shrink-0 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-[#3b82f6] font-800">01</div>
+                        <div>
+                            <h4 class="text-white font-bold mb-1">Benchmark Protocol</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">Rolling 3-month average calculated from DMRE diesel prices, rounded to 2 decimal places for precision.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-5">
+                        <div class="h-10 w-10 shrink-0 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-[#3b82f6] font-800">02</div>
+                        <div>
+                            <h4 class="text-white font-bold mb-1">Movement Index</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">Calculated as <code>(Current - Benchmark) / Benchmark</code>. Negative movement is indexed to 0% to prevent rate deflation.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="flex gap-5">
+                        <div class="h-10 w-10 shrink-0 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-[#3b82f6] font-800">03</div>
+                        <div>
+                            <h4 class="text-white font-bold mb-1">Surcharge Engine</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">Movement percentage is applied strictly to the Fuel Portion (default 25%) of the base rate.</p>
+                        </div>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/5">
+                        <p class="text-xs text-[#f59e0b] italic font-medium leading-relaxed">
+                            <span class="block font-bold mb-1 uppercase tracking-wider">Example:</span>
+                            R2,500 base @ 25% fuel (R625). If fuel moves +10%, surcharge = R62.50. Final = R2,562.50.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SPIKE_THRESHOLD = 0.20;
+        let calcMode = 'average'; // 'average' or 'fixed'
+        
+        const fuelPortionInput = document.getElementById('fuel-portion-input');
+        const m1Input = document.getElementById('m1-price');
+        const m2Input = document.getElementById('m2-price');
+        const m3Input = document.getElementById('m3-price');
+        const currentInput = document.getElementById('current-price');
+        const fixedBasePriceInput = document.getElementById('fixed-base-price');
+        
+        const avgInputsContainer = document.getElementById('avg-inputs-container');
+        const fixedInputContainer = document.getElementById('fixed-input-container');
+        const modeAvgBtn = document.getElementById('mode-avg');
+        const modeFixedBtn = document.getElementById('mode-fixed');
+        
+        const benchmarkDisplay = document.getElementById('benchmark-display');
+        const movementDisplay = document.getElementById('movement-display');
+        const movementTrend = document.getElementById('movement-trend');
+        const spikeWarning = document.getElementById('spike-warning');
+        
+        const tableBody = document.getElementById('rate-table-body');
+        const addRowBtn = document.getElementById('add-row');
+        const emptyState = document.getElementById('empty-state');
+        const infoModal = document.getElementById('info-modal');
+
+        let isSimulating = false;
+        let simulationInterval;
+
+        function toggleSimulation() {
+            isSimulating = !isSimulating;
+            const bg = document.getElementById('sim-toggle-bg');
+            const knob = document.getElementById('sim-toggle-knob');
+            const label = document.getElementById('sim-label');
+            const grid = document.getElementById('stream-grid');
+            const feedStatus = document.getElementById('feed-status');
+
+            if (isSimulating) {
+                bg.classList.replace('bg-slate-200', 'bg-[#3b82f6]');
+                knob.classList.add('translate-x-4');
+                label.textContent = 'Streaming';
+                label.classList.replace('text-slate-400', 'text-[#3b82f6]');
+                grid.classList.replace('opacity-0', 'opacity-100');
+                feedStatus.textContent = 'Live Feed';
+                feedStatus.classList.replace('opacity-40', 'animate-pulse');
+                
+                simulationInterval = setInterval(() => {
+                    const current = parseFloat(currentInput.value) || 20.00;
+                    const change = (Math.random() - 0.5) * 0.05; // Max 5 cents move
+                    currentInput.value = (current + change).toFixed(4);
+                    updateUIMetrics();
+                }, 2000);
+            } else {
+                bg.classList.replace('bg-[#3b82f6]', 'bg-slate-200');
+                knob.classList.remove('translate-x-4');
+                label.textContent = 'Stream Off';
+                label.classList.replace('text-[#3b82f6]', 'text-slate-400');
+                grid.classList.replace('opacity-100', 'opacity-0');
+                feedStatus.textContent = 'Static';
+                feedStatus.classList.replace('animate-pulse', 'opacity-40');
+                clearInterval(simulationInterval);
+            }
+        }
+
+        let rows = [
+            { id: 1, client: 'Shoprite Group', size: '6m', baseRate: 1986.50 },
+            { id: 2, client: 'DHL Supply Chain', size: '12m', baseRate: 3475.25 },
+            { id: 3, client: 'Container Corp', size: '12m', baseRate: 859.21 }
+        ];
+
+        // Formatters
+        const formatZAR = (val) => {
+            return new Intl.NumberFormat('en-ZA', {
+                style: 'currency',
+                currency: 'ZAR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(val);
+        };
+
+        const formatPercent = (val) => (val * 100).toFixed(3) + '%';
+
+        function toggleInfo() {
+            infoModal.classList.toggle('active');
+        }
+
+        function setCalcMode(mode) {
+            calcMode = mode;
+            const modeAvgBtn = document.getElementById('mode-avg');
+            const modeFixedBtn = document.getElementById('mode-fixed');
+            
+            if (mode === 'average') {
+                avgInputsContainer.classList.remove('hidden');
+                fixedInputContainer.classList.add('hidden');
+                modeAvgBtn.classList.add('active');
+                modeFixedBtn.classList.remove('active');
+            } else {
+                avgInputsContainer.classList.add('hidden');
+                fixedInputContainer.classList.remove('hidden');
+                modeAvgBtn.classList.remove('active');
+                modeFixedBtn.classList.add('active');
+            }
+            updateUIMetrics();
+        }
+
+        const lastUpdatedDisplay = document.getElementById('last-updated');
+
+        function updateTimestamp() {
+            const now = new Date();
+            lastUpdatedDisplay.textContent = now.toLocaleTimeString('en-ZA', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function updateUIMetrics() {
+            updateTimestamp();
+            const fuelPortionPerc = (parseFloat(fuelPortionInput.value) || 0) / 100;
+            const current = parseFloat(currentInput.value) || 0;
+
+            let benchmark = 0;
+            if (calcMode === 'average') {
+                const m1 = parseFloat(m1Input.value) || 0;
+                const m2 = parseFloat(m2Input.value) || 0;
+                const m3 = parseFloat(m3Input.value) || 0;
+                const benchmarkRaw = (m1 + m2 + m3) / 3;
+                benchmark = Math.round(benchmarkRaw * 100) / 100;
+            } else {
+                benchmark = parseFloat(fixedBasePriceInput.value) || 0;
+            }
+
+            benchmarkDisplay.textContent = formatZAR(benchmark);
+
+            let movement = 0;
+            if (benchmark > 0) {
+                movement = (current - benchmark) / benchmark;
+                if (movement < 0) movement = 0;
+            }
+            
+            movementDisplay.textContent = formatPercent(movement);
+            
+            // Premium UI Feedback for Movement
+            if (movement > 0) {
+                movementDisplay.className = "text-2xl font-900 text-[#f59e0b] tracking-tighter";
+                movementTrend.style.transform = "rotate(0deg)";
+                movementTrend.className = "h-6 w-6 text-[#f59e0b] transition-all duration-500";
+            } else {
+                movementDisplay.className = "text-2xl font-900 text-[#10b981] tracking-tighter";
+                movementTrend.style.transform = "rotate(90deg)";
+                movementTrend.className = "h-6 w-6 text-[#10b981] transition-all duration-500";
+            }
+
+            if (movement > SPIKE_THRESHOLD) {
+                spikeWarning.classList.remove('hidden');
+            } else {
+                spikeWarning.classList.add('hidden');
+            }
+
+            const tableRows = tableBody.querySelectorAll('tr[data-id]');
+            tableRows.forEach(tr => {
+                const rowId = tr.getAttribute('data-id');
+                const rowData = rows.find(r => r.id == rowId);
+                if (rowData) {
+                    const fuelValue = rowData.baseRate * fuelPortionPerc;
+                    const nonFuelValue = rowData.baseRate * (1 - fuelPortionPerc);
+                    const surcharge = fuelValue * movement;
+                    const total = rowData.baseRate + surcharge;
+
+                    tr.querySelector('.fuel-cell').textContent = formatZAR(fuelValue);
+                    tr.querySelector('.nonfuel-cell').textContent = formatZAR(nonFuelValue);
+                    tr.querySelector('.surcharge-cell').textContent = formatZAR(surcharge);
+                    tr.querySelector('.total-cell').textContent = formatZAR(total);
+                }
+            });
+        }
+
+        function renderTableStructure() {
+            if (rows.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+            
+            tableBody.innerHTML = '';
+            rows.forEach((row) => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', row.id);
+                tr.className = 'group transition-all hover:bg-white/[0.02]';
+                tr.innerHTML = `
+                    <td class="px-8">
+                        <input type="text" value="${row.client}" oninput="updateRowState(${row.id}, 'client', this.value)" 
+                               class="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-white p-0 placeholder:text-white/20" placeholder="Client Name">
+                    </td>
+                    <td class="px-6">
+                        <div class="relative group/select">
+                            <select onchange="updateRowState(${row.id}, 'size', this.value)" 
+                                    class="bg-white/10 border border-white/10 rounded-lg px-4 py-1.5 text-[10px] font-800 text-white cursor-pointer uppercase tracking-widest focus:ring-1 focus:ring-[#3b82f6] hover:bg-white/20 transition-all appearance-none pr-8">
+                                <option value="6m" ${row.size === '6m' ? 'selected' : ''}>6m</option>
+                                <option value="12m" ${row.size === '12m' ? 'selected' : ''}>12m</option>
+                            </select>
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <span class="text-[10px] font-bold text-white/20">R</span>
+                            <input type="number" step="0.01" value="${row.baseRate}" oninput="updateRowState(${row.id}, 'baseRate', this.value)" 
+                                   class="w-32 bg-transparent border-none focus:ring-0 text-sm font-bold text-white p-0 text-right" placeholder="0.00">
+                        </div>
+                    </td>
+                    <td class="px-6 text-right fuel-cell text-sm text-white/40 font-medium tracking-tight">0.00</td>
+                    <td class="px-6 text-right nonfuel-cell text-sm text-white/40 font-medium tracking-tight">0.00</td>
+                    <td class="px-6 text-right surcharge-cell text-base font-bold text-[#f59e0b]">0.00</td>
+                    <td class="px-6 text-right total-cell text-lg font-900 text-white tracking-tighter">0.00</td>
+                    <td class="px-8 text-right">
+                        <button onclick="deleteRow(${row.id})" class="rounded-xl p-3 text-white/10 transition-all hover:bg-red-500/10 hover:text-red-500 opacity-0 group-hover:opacity-100">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            updateUIMetrics();
+        }
+
+        function updateRowState(id, field, value) {
+            const row = rows.find(r => r.id === id);
+            if (row) {
+                row[field] = field === 'baseRate' ? (parseFloat(value) || 0) : value;
+                updateUIMetrics();
+            }
+        }
+
+        function deleteRow(id) {
+            rows = rows.filter(r => r.id !== id);
+            renderTableStructure();
+        }
+
+        addRowBtn.addEventListener('click', () => {
+            const newId = Date.now();
+            rows.push({ id: newId, client: '', size: '6m', baseRate: 0.00 });
+            renderTableStructure();
+            setTimeout(() => {
+                const tr = tableBody.querySelector(`tr[data-id="${newId}"]`);
+                if (tr) tr.querySelector('input[type="text"]').focus();
+            }, 50);
+        });
+
+        [fuelPortionInput, m1Input, m2Input, m3Input, currentInput, fixedBasePriceInput].forEach(input => {
+            input.addEventListener('input', updateUIMetrics);
+        });
+
+        function exportToExcel() {
+            const fuelPortion = fuelPortionInput.value;
+            const benchmark = benchmarkDisplay.textContent;
+            const current = currentInput.value;
+            const movement = movementDisplay.textContent;
+
+            const data = rows.map(r => {
+                const fuelPerc = (parseFloat(fuelPortion) || 0) / 100;
+                const fuelVal = r.baseRate * fuelPerc;
+                const movementVal = (parseFloat(movement) || 0) / 100;
+                const surcharge = fuelVal * movementVal;
+                
+                return {
+                    "Client": r.client,
+                    "Size": r.size,
+                    "Base Rate (R)": r.baseRate,
+                    "Fuel Portion (R)": fuelVal.toFixed(2),
+                    "Non-Fuel (R)": (r.baseRate - fuelVal).toFixed(2),
+                    "Surcharge (R)": surcharge.toFixed(2),
+                    "Final Total (R)": (r.baseRate + surcharge).toFixed(2)
+                };
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.sheet_add_aoa(ws, [
+                ["CONNECT LOGISTICS - X-HAUL PRICING TERMINAL"],
+                ["Export Date:", new Date().toLocaleString()],
+                ["Fuel Portion:", fuelPortion + "%"],
+                ["Benchmark:", benchmark],
+                ["Current Price:", "R " + current],
+                ["Movement:", movement],
+                []
+            ], { origin: "A1" });
+            XLSX.utils.book_append_sheet(wb, ws, "Haulage Rates");
+            XLSX.writeFile(wb, `Connect_X-Haul_Rates_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        window.onload = () => {
+            m1Input.value = 18.64;
+            m2Input.value = 19.65;
+            m3Input.value = 19.41;
+            currentInput.value = 26.60;
+            renderTableStructure();
+        };
+    </script>
+</body>
+</html>
