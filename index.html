@@ -80,6 +80,17 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
+        /* Number Input Spinner Removal */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
         /* Buttons */
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
@@ -137,6 +148,28 @@
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.12);
             border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Compact Icon Button */
+        .btn-icon-sm {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-icon-sm:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
         }
 
         /* Status Indicators */
@@ -265,9 +298,30 @@
         }
 
         /* Table Styling */
+        .table-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .table-header-wrapper {
+            flex-shrink: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .table-scroll-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         .vicious-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .vicious-table th {
@@ -280,6 +334,9 @@
             letter-spacing: 0.15em;
             border-bottom: 1px solid var(--border-light);
             text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .vicious-table td {
@@ -287,6 +344,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             color: var(--text-primary);
             transition: all 0.2s ease;
+            vertical-align: middle;
         }
 
         .vicious-table tr:hover td {
@@ -313,6 +371,9 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         /* Layout */
@@ -387,6 +448,27 @@
             .vicious-table td {
                 padding: 0.75rem 0.5rem;
             }
+        }
+
+        /* Input Controls Group */
+        .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: nowrap;
+        }
+
+        .input-with-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .input-with-controls input {
+            flex: 1;
+            min-width: 60px;
         }
     </style>
 </head>
@@ -529,8 +611,8 @@
 
         <!-- Main Table -->
         <main class="flex-1 overflow-hidden px-8 py-8">
-            <div class="glass-panel h-full flex flex-col overflow-hidden">
-                <div class="flex items-center justify-between p-8 border-b border-white/5">
+            <div class="glass-panel">
+                <div class="flex-shrink-0 flex items-center justify-between p-8 border-b border-white/5">
                     <div>
                         <h2 class="text-2xl font-900 text-white">Haulage Matrix</h2>
                         <p class="section-label mt-1">Real-time Pricing Terminal</p>
@@ -547,14 +629,14 @@
                     <table class="vicious-table">
                         <thead class="sticky top-0 z-10">
                             <tr>
-                                <th class="px-8 text-left">Client Entity</th>
-                                <th class="px-6 text-left">Size</th>
-                                <th class="px-6 text-right">Base Rate</th>
-                                <th class="px-6 text-right">Fuel Portion</th>
-                                <th class="px-6 text-right">Non-Fuel</th>
-                                <th class="px-6 text-right text-orange-400">Surcharge</th>
-                                <th class="px-6 text-right">Final Rate</th>
-                                <th class="px-8 w-20"></th>
+                                <th class="px-8 text-left w-32">Client Entity</th>
+                                <th class="px-6 text-left w-20">Size</th>
+                                <th class="px-6 text-right w-24">Base Rate</th>
+                                <th class="px-6 text-right w-24">Fuel Portion</th>
+                                <th class="px-6 text-right w-24">Non-Fuel</th>
+                                <th class="px-6 text-right text-orange-400 w-24">Surcharge</th>
+                                <th class="px-6 text-right w-24">Final Rate</th>
+                                <th class="px-8 w-12"></th>
                             </tr>
                         </thead>
                         <tbody id="rate-table-body">
@@ -800,22 +882,22 @@
                 tr.setAttribute('data-id', row.id);
                 tr.className = 'group transition-all';
                 tr.innerHTML = `
-                    <td class="px-8">
+                    <td class="px-8 text-sm font-semibold">
                         <input type="text" value="${row.client}" oninput="updateRowState(${row.id}, 'client', this.value)"
                                class="w-full bg-transparent border-none focus:ring-0 text-sm font-semibold text-white p-0 placeholder:text-slate-500" placeholder="Client Name">
                     </td>
                     <td class="px-6">
                         <select onchange="updateRowState(${row.id}, 'size', this.value)"
-                                class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-xs font-700 text-white cursor-pointer uppercase tracking-wide focus:ring-1 focus:ring-blue-500">
-                            <option value="6m" ${row.size === '6m' ? 'selected' : ''}>6 Months</option>
-                            <option value="12m" ${row.size === '12m' ? 'selected' : ''}>12 Months</option>
+                                class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-xs font-700 text-white cursor-pointer uppercase tracking-wide focus:ring-1 focus:ring-blue-500 w-full">
+                            <option value="6m" ${row.size === '6m' ? 'selected' : ''}>6m</option>
+                            <option value="12m" ${row.size === '12m' ? 'selected' : ''}>12m</option>
                         </select>
                     </td>
                     <td class="px-6 text-right">
-                        <div class="flex items-center justify-end gap-1.5">
-                            <span class="text-xs font-bold text-slate-500">R</span>
+                        <div class="input-with-controls">
+                            <span class="text-xs font-bold text-slate-500 whitespace-nowrap">R</span>
                             <input type="number" step="0.01" value="${row.baseRate}" oninput="updateRowState(${row.id}, 'baseRate', this.value)"
-                                   class="w-32 bg-transparent border-none focus:ring-0 text-sm font-semibold text-white p-0 text-right placeholder:text-slate-500" placeholder="0.00">
+                                   class="bg-transparent border-none focus:ring-0 text-sm font-semibold text-white p-0 text-right placeholder:text-slate-500" placeholder="0.00">
                         </div>
                     </td>
                     <td class="px-6 text-right fuel-cell text-sm text-slate-400 font-medium">R 0.00</td>
@@ -823,8 +905,8 @@
                     <td class="px-6 text-right surcharge-cell text-base font-bold text-orange-400">R 0.00</td>
                     <td class="px-6 text-right total-cell text-lg font-900 text-white">R 0.00</td>
                     <td class="px-8 text-right">
-                        <button onclick="deleteRow(${row.id})" class="rounded-lg p-3 text-slate-500 transition-all hover:bg-red-500/10 hover:text-red-400 opacity-0 group-hover:opacity-100">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="deleteRow(${row.id})" class="btn-icon-sm opacity-0 group-hover:opacity-100" title="Delete row">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </button>
