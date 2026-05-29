@@ -27,6 +27,7 @@
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
             --border-light: #334155;
+            --bg-panel: #0f1423;
         }
 
         html, body {
@@ -298,45 +299,28 @@
         }
 
         /* Table Styling */
-        .table-wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .table-header-wrapper {
-            flex-shrink: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .table-scroll-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
         .vicious-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+        }
+
+        .vicious-table thead {
+            background: var(--bg-panel);
+            position: sticky;
+            top: 0;
+            z-index: 20;
         }
 
         .vicious-table th {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-panel);
             color: var(--text-muted);
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.15em;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 2px solid var(--border-light);
             text-align: left;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
         .vicious-table td {
@@ -448,27 +432,6 @@
             .vicious-table td {
                 padding: 0.75rem 0.5rem;
             }
-        }
-
-        /* Input Controls Group */
-        .input-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: nowrap;
-        }
-
-        .input-with-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .input-with-controls input {
-            flex: 1;
-            min-width: 60px;
         }
     </style>
 </head>
@@ -625,18 +588,18 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-auto custom-scroll">
-                    <table class="vicious-table">
-                        <thead class="sticky top-0 z-10">
+                <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scroll">
+                    <table class="vicious-table w-full">
+                        <thead>
                             <tr>
-                                <th class="px-8 text-left w-32">Client Entity</th>
-                                <th class="px-6 text-left w-20">Size</th>
-                                <th class="px-6 text-right w-24">Base Rate</th>
-                                <th class="px-6 text-right w-24">Fuel Portion</th>
-                                <th class="px-6 text-right w-24">Non-Fuel</th>
-                                <th class="px-6 text-right text-orange-400 w-24">Surcharge</th>
-                                <th class="px-6 text-right w-24">Final Rate</th>
-                                <th class="px-8 w-12"></th>
+                                <th class="px-8 text-left">Client Entity</th>
+                                <th class="px-6 text-left">Size</th>
+                                <th class="px-6 text-right">Base Rate</th>
+                                <th class="px-6 text-right">Fuel Portion</th>
+                                <th class="px-6 text-right">Non-Fuel</th>
+                                <th class="px-6 text-right text-orange-400">Surcharge</th>
+                                <th class="px-6 text-right">Final Rate</th>
+                                <th class="px-8 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="rate-table-body">
@@ -894,8 +857,8 @@
                         </select>
                     </td>
                     <td class="px-6 text-right">
-                        <div class="input-with-controls">
-                            <span class="text-xs font-bold text-slate-500 whitespace-nowrap">R</span>
+                        <div class="flex items-center justify-end gap-1.5">
+                            <span class="text-xs font-bold text-slate-500">R</span>
                             <input type="number" step="0.01" value="${row.baseRate}" oninput="updateRowState(${row.id}, 'baseRate', this.value)"
                                    class="bg-transparent border-none focus:ring-0 text-sm font-semibold text-white p-0 text-right placeholder:text-slate-500" placeholder="0.00">
                         </div>
@@ -904,7 +867,7 @@
                     <td class="px-6 text-right nonfuel-cell text-sm text-slate-400 font-medium">R 0.00</td>
                     <td class="px-6 text-right surcharge-cell text-base font-bold text-orange-400">R 0.00</td>
                     <td class="px-6 text-right total-cell text-lg font-900 text-white">R 0.00</td>
-                    <td class="px-8 text-right">
+                    <td class="px-8 text-center">
                         <button onclick="deleteRow(${row.id})" class="btn-icon-sm opacity-0 group-hover:opacity-100" title="Delete row">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
